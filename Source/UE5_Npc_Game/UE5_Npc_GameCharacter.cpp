@@ -10,6 +10,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "InteractableInterface.h" // Include the interface header
+#include "DrawDebugHelpers.h" // For debugging
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -36,6 +38,7 @@ AUE5_Npc_GameCharacter::AUE5_Npc_GameCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 }
+
 
 //////////////////////////////////////////////////////////////////////////// Input
 
@@ -72,6 +75,8 @@ void AUE5_Npc_GameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AUE5_Npc_GameCharacter::Interact);
 }
 
 
@@ -104,6 +109,20 @@ void AUE5_Npc_GameCharacter::Look(const FInputActionValue& Value)
 //Interact
 void AUE5_Npc_GameCharacter::Interact()
 {
+	// Check if there is a current interactable actor
+	if (CurrentInteractableActor && CurrentInteractableActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+	{
+		// Get the player controller
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController)
+		{
+			// Call the Interact function on the NPC
+			IInteractableInterface::Execute_Interact(CurrentInteractableActor, PlayerController);
+		}
+	}
+}
 
-
+void AUE5_Npc_GameCharacter::SetCurrentInteractableActor(AActor* Actor)
+{
+	CurrentInteractableActor = Actor;
 }

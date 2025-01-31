@@ -16,7 +16,7 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-UCLASS()//config=Game
+UCLASS(config = Game)
 class AUE5_Npc_GameCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -71,6 +71,12 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
+public:
+	// Function to handle interaction input
+	//void Interact();
+	void SetCurrentInteractableActor(AActor* Actor);
+private:
+	// Variable to store the current interactable actor
+	AActor* CurrentInteractableActor;
 };
 

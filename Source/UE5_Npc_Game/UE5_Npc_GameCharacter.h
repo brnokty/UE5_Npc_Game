@@ -16,7 +16,7 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-UCLASS(config=Game)
+UCLASS()//config=Game
 class AUE5_Npc_GameCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -47,6 +47,11 @@ class AUE5_Npc_GameCharacter : public ACharacter
 	
 public:
 	AUE5_Npc_GameCharacter();
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	void Interact();
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> actorBPtoInteract;
 
 protected:
 	/** Called for movement input */

@@ -74,9 +74,11 @@ public:
 public:
 	// Function to handle interaction input
 	//void Interact();
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SetCurrentInteractableActor(AActor* Actor);
 private:
 	// Variable to store the current interactable actor
+	UPROPERTY()
 	AActor* CurrentInteractableActor;
 };
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Blueprint/UserWidget.h"
 #include "UE5_Npc_GameCharacter.generated.h"
 
 class UInputComponent;
@@ -44,6 +45,10 @@ class AUE5_Npc_GameCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+
+	/** Interact Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InteractAction;
 	
 public:
 	AUE5_Npc_GameCharacter();
@@ -51,7 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 	void Interact();
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<AActor> actorBPtoInteract;
+	UUserWidget* InteractUI;
 
 protected:
 	/** Called for movement input */
@@ -66,6 +71,10 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
 
+	// The class of the InteractUI widget
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> InteractUIClass;
+
 public:
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
@@ -76,6 +85,8 @@ public:
 	//void Interact();
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SetCurrentInteractableActor(AActor* Actor);
+
+	void EnableInputAgain();
 private:
 	// Variable to store the current interactable actor
 	UPROPERTY()

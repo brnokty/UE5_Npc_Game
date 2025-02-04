@@ -12,6 +12,8 @@
 #include "Engine/LocalPlayer.h"
 #include "InteractableInterface.h" // Include the interface header
 #include "DrawDebugHelpers.h" // For debugging
+#include "Blueprint/UserWidget.h" // Include for UUserWidget
+#include "NPCCharacter.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -70,13 +72,16 @@ void AUE5_Npc_GameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUE5_Npc_GameCharacter::Look);
+
+		//EnhancedInputComponent->BindAction("Interact", IE_Pressed, this, &AUE5_Npc_GameCharacter::Interact);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AUE5_Npc_GameCharacter::Interact);
 	}
 	else
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AUE5_Npc_GameCharacter::Interact);
+	
 }
 
 
@@ -107,19 +112,84 @@ void AUE5_Npc_GameCharacter::Look(const FInputActionValue& Value)
 }
 
 //Interact
+// Interact
 void AUE5_Npc_GameCharacter::Interact()
 {
-	// Check if there is a current interactable actor
-	if (CurrentInteractableActor && CurrentInteractableActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+
+	if (InteractUIClass)
 	{
-		// Get the player controller
-		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		if (PlayerController)
+		// UI widget'ını oluştur
+		InteractUI = CreateWidget<UUserWidget>(GetWorld(), InteractUIClass);
+		if (InteractUI)
 		{
-			// Call the Interact function on the NPC
-			IInteractableInterface::Execute_Interact(CurrentInteractableActor, PlayerController);
+			InteractUI->AddToViewport();
+
+			// PlayerController al ve null kontrolü yap
+			APlayerController* PlayerController = Cast<APlayerController>(GetController());
+			if (PlayerController)
+			{
+				// NPC ile etkileşime gir
+				if (CurrentInteractableActor)
+				{
+					IInteractableInterface::Execute_Interact(CurrentInteractableActor, PlayerController);
+					//CurrentInteractableActor->
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("CurrentInteractableActor null!"));
+				}
+
+				// Player hareketini devre dışı bırak
+				DisableInput(PlayerController);
+
+				// Fare imlecini göster
+				PlayerController->bShowMouseCursor = true;
+				PlayerController->SetInputMode(FInputModeUIOnly());
+			}
+
+			// Blueprint içindeki "NPC_Character" değişkenini bul
+			FName VarName = FName(TEXT("NPC_Character"));
+			FProperty* Property = InteractUI->GetClass()->FindPropertyByName(VarName);
+
+			if (Property)
+			{
+				// NPC objesine erişim sağla
+				UObject* NpcObject = Property->ContainerPtrToValuePtr<UObject>(InteractUI);
+
+				if (NpcObject)
+				{
+					// NPC objesini cast et
+					ANPCCharacter* NpcChar = Cast<ANPCCharacter>(CurrentInteractableActor);
+					if (NpcChar)
+					{
+						// NPC referansını Blueprint değişkenine ata
+						*reinterpret_cast<ANPCCharacter**>(NpcObject) = NpcChar;
+						UE_LOG(LogTemp, Warning, TEXT("NpcCharacter başarıyla Widget'a atandı: %s"), *NpcChar->GetName());
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("CurrentInteractableActor, ANPCCharacter değil!"));
+					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Blueprint içindeki NPC_Character değişkenine erişilemedi!"));
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Blueprint içinde 'NPC_Character' değişkeni bulunamadı!"));
+			}
 		}
 	}
+}
+
+void AUE5_Npc_GameCharacter::EnableInputAgain()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	EnableInput(PlayerController);
+	PlayerController->bShowMouseCursor = false;
+        PlayerController->SetInputMode(FInputModeGameOnly());
 }
 
 void AUE5_Npc_GameCharacter::SetCurrentInteractableActor(AActor* Actor)

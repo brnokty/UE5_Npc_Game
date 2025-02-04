@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InteractableInterface.h"
+#include "UE5_Npc_GameCharacter.h"
 #include "NPCCharacter.generated.h"
 
 UCLASS()
@@ -28,4 +29,13 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void Interact_Implementation(APlayerController* PlayerController) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC") // Blueprint'te düzenlenebilir ve okunabilir
+		FString Name;
+
+	UFUNCTION(BlueprintCallable, Category = "NPC")
+	void ChooseAction(int choise);
+
+	AUE5_Npc_GameCharacter Character;
+	
 };
